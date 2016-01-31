@@ -45,10 +45,11 @@ def get_databases(*groups):
     return output
     
 
-def get_database(name, override=None, replace=None, replicas=None, original=None):
+def get_database(alias, override=None, replace=None, replicas=None, original=None):
     """Return the _GET_DATABASES_DEFAULT variable with any changes specified.
     
     Args:
+        alias (str): The alias of the database (used by Django).
         override (dict): Any keys and values to override the defaults with.
         replicas (list): Host names to be used as read-replicas.
         replace (bool): If override is set, then just output override.
@@ -78,12 +79,12 @@ def get_database(name, override=None, replace=None, replicas=None, original=None
     
     # Append this first one to the list.
     # `appending` will still reflect the `original` list due to referencing
-    output.append((name, appending))
+    output.append((alias, appending))
     
     # Are replicas included?
     if replicas:
         if isinstance(replicas, list):
-            formatted = get_database_replicas_list(name, original, replicas)
+            formatted = get_database_replicas_list(alias, original, replicas)
             output.extend(formatted)
         else:
             raise TypeError("replicas must be a list")
@@ -92,11 +93,11 @@ def get_database(name, override=None, replace=None, replicas=None, original=None
     return output
     
 
-def get_database_replicas_list(name, original, replicas):
+def get_database_replicas_list(alias, original, replicas):
     """Turns list of replicas into new database dicts.
     
     Args:
-        name (str): The name of the original database setup.
+        alias (str): The alias of the writable database.
         original (dict): The write database configuration to model.
         replicas (list): Either the hostnames to model for, or a list of
             configs to send through 'get_database'.
@@ -112,7 +113,7 @@ def get_database_replicas_list(name, original, replicas):
         
         # Replica will have a number attached to it
         num += 1
-        replica_name = "%s-read%d" % (name, num)
+        replica_name = "%s-read%d" % (alias, num)
         
         # Just hostname?
         if isinstance(replica, str):
@@ -134,12 +135,12 @@ def get_database_replicas_list(name, original, replicas):
     return output
     
     
-def is_read_db(name, original=None):
+def is_read_db(alias, original=None):
     """Tests whether or not the specified node is for read only."""
     regex = r'\-read[1-9]+\d*$'
     if original:
         regex = original + regex
-    return bool(re.search(regex,name))
+    return bool(re.search(regex,alias))
 
 
 def dbs_by_environment(environment, write_only=True):

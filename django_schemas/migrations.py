@@ -4,10 +4,11 @@ from django.core.management import call_command
 from django.db import connections, transaction
 
 from . import routers
+from .exceptions import ConfigError
 from .utils import dict_fetchall
 
 
-def migrate(db, schema=None, environment=None, big_ints=True):
+def migrate(db, schema=None, environment=None, big_ints=False):
     """
     Migrate a particular database. If a schema is provided, it will
     become the default schema for the models.
@@ -35,7 +36,7 @@ def migrate(db, schema=None, environment=None, big_ints=True):
         if not current_schema:
             current_schema = schema
         if not current_schema:
-            raise Exception("schema required and not present")
+            raise ConfigError("schema required and not present")
         
         # Prep the database wrapper with the school we want
         routers.set_db(schema=current_schema, environment=env)
