@@ -1,6 +1,7 @@
+import os
 import os.path
 import re
-from setuptools import find_packages, setup
+from setuptools import setup
 
 
 def get_info(var):
@@ -8,6 +9,30 @@ def get_info(var):
     with open(os.path.join('django_schemas','__init__.py')) as f:
         content = f.read()
     return re.search(var + r'\s*=\s*["\'](.+?)["\']', content).group(1)
+
+
+def get_packages(package):
+    """
+    Taken from https://github.com/tomchristie/django-rest-framework/blob/master/setup.py
+    """
+    return [dirpath
+            for dirpath, dirnames, filenames in os.walk(package)
+            if os.path.exists(os.path.join(dirpath, '__init__.py'))]
+
+
+def get_package_data(package):
+    """
+    Taken from https://github.com/tomchristie/django-rest-framework/blob/master/setup.py
+    """
+    walk = [(dirpath.replace(package + os.sep, '', 1), filenames)
+            for dirpath, dirnames, filenames in os.walk(package)
+            if not os.path.exists(os.path.join(dirpath, '__init__.py'))]
+
+    filepaths = []
+    for base, filenames in walk:
+        filepaths.extend([os.path.join(base, filename)
+                          for filename in filenames])
+    return {package: filepaths}
 
 
 VERSION = get_info('__version__')
@@ -20,12 +45,12 @@ setup(
         url="https://github.com/ryannjohnson/django-schemas",
         license=LICENSE,
         version=VERSION,
-        packages=find_packages('django_schemas'),
+        packages=get_packages('django_schemas'),
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Environment :: Web Environment',
             'Framework :: Django :: 1.8',
             'Intended Audience :: Developers',
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3',
         ])
