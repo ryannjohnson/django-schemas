@@ -1,6 +1,16 @@
 from django_schemas.utils import get_databases, get_database
 
 
+INSTALLED_APPS = (
+    'django_schemas',
+)
+"""Register django_schemas as an app.
+
+This is only important for using the `migrate_schema` command from the
+cli. 
+"""
+
+
 DATABASE_ROUTERS = [
     'django_schemas.routers.ExplicitRouter',
 ]
@@ -14,6 +24,7 @@ it, the database _meta information appended to models will be ignored.
 DATABASE_ENVIRONMENTS = {
     'primary': {
         'SCHEMA_NAME': 'primary_schema',
+        'ADDITIONAL_SCHEMAS': ['public'],
     },
     'secondary': {},
 }
@@ -27,11 +38,16 @@ If the environment only has a single schema, then it can be listed as
 SCHEMA_NAME. Another advantage of this is that Models specific to an
 environment that is assigned to a single write-database with a single
 SCHEMA_NAME will not need explicit `set_db` calls in program code.
+
+ADDITIONAL_SCHEMAS includes other schemas in postgres's search_path
+during migrations. For instance, 'public' might be required if the
+PostGIS extension is installed on 'public' and is used in this other
+schema.
 """
 
 
 DATABASE_DEFAULT = {
-    'ENGINE': 'django_schemas.backends.postgres.wrapper',
+    'ENGINE': 'django_schemas.backends.postgis.wrapper',
     'NAME': 'dbname',
     'USER': 'dbuser',
     'PASSWORD': 'dbpass',

@@ -10,7 +10,6 @@ from .utils import dbs_by_environment, is_read_db
 import random
 import re
 
-from . import ENVIRONMENTS
 from .wrapper import base as WrapperBase
 
 
@@ -156,8 +155,9 @@ def set_db(schema=None, db=None, environment=None):
     global WrapperBase
     WrapperBase.SCHEMA_NAME = schema
     WrapperBase.ENVIRONMENT_NAME = environment
-    WrapperBase.ALLOW_PUBLIC_SCHEMA = False
+    WrapperBase.ADDITIONAL_SCHEMAS = []
     
-    # If environment is primary, then include public (for postgis)
-    if environment == ENVIRONMENTS.primary:
-        WrapperBase.ALLOW_PUBLIC_SCHEMA = True
+    # If environment has additional schemas, include them
+    a = settings.DATABASE_ENVIRONMENTS.get("ADDITIONAL_SCHEMAS", None)
+    if a and isinstance(a, list):
+        WrapperBase.ADDITIONAL_SCHEMAS = a

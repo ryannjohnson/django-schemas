@@ -1,4 +1,4 @@
-from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
+from django.contrib.gis.db.backends.postgis.base import DatabaseWrapper
 
 
 SCHEMA_NAME = None

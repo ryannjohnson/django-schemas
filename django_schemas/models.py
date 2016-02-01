@@ -3,7 +3,7 @@ from django.db.models import *
 from django.db import models as django_models
 from django.utils.translation import ugettext_lazy as _
 
-from . import ENVIRONMENTS
+from .exceptions import ConfigError
 from .utils import dbs_by_environment
 
 
@@ -74,17 +74,17 @@ class BaseModel:
         # Based on environment, a schema might already be set
         env = getattr(cls._meta, 'db_environment', None)
         if not env:
-            return cls
+            raise ConfigError(cls.__name__ + " has no specified environment")
         
         # Schema set by environment?
         conf = settings.DATABASE_ENVIRONMENTS[env]
         if not conf.get('SCHEMA_NAME', None):
-            return cls
+            raise ConfigError(cls.__name__ + " has no specified schema")
         
         # Single db for this class?
-        dbs = dbs_by_environment(ENVIRONMENTS.primary)
+        dbs = dbs_by_environment(env)
         if len(dbs) != 1:
-            return cls
+            raise ConfigError(cls.__name__ + " has no single database")
         
         # It worked!
         return cls.set_db(db=list(dbs)[0], schema=conf['SCHEMA_NAME'])

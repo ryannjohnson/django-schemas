@@ -4,28 +4,6 @@ import logging
 import re
 
 
-class DotDict(dict):
-    """For creating immutable dictionaries.
-    
-    Source:
-        http://stackoverflow.com/questions/2352181/how-to-use-a-dot-to-access-members-of-dictionary#32107024
-    
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for arg in args:
-            if isinstance(arg, dict):
-                for k, v in arg.items():
-                    self[k] = v
-
-        if kwargs:
-            for k, v in kwargs.items():
-                self[k] = v
-
-    def __getattr__(self, attr):
-        return self.get(attr)
-
-
 def get_databases(*groups):
     """Wrapper used to return database (str, list) tuples into a dict.
     
