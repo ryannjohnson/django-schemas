@@ -1,19 +1,27 @@
 from django_schemas import models
 
 
-class PrimaryUserMeta:
-	db_environment = 'primary'
+# 
+# Test 1
+# 
 
-class PrimaryUser(models.Model):
-	name = models.CharField(max_length=100, unique=True, )
-	db = models.CharField(max_length=63)
-	
-	class Meta(PrimaryUserMeta):
-		pass
+class Test1AUserMeta:
+    db_environment = 'test1-a'
+
+class Test1AUser(models.Model):
+    name = models.CharField(max_length=100, unique=True, )
+    db = models.CharField(max_length=63)
+    
+    class Meta(Test1AUserMeta):
+        pass
 
 
-class SecondaryThingMeta:
-	db_environment = 'secondary'
+class Test1BUserMeta:
+    db_environment = 'test1-b'
 
-class SecondaryThing(models.Model):
-	name = models.CharField(max_length=100, default="untitled")
+class Test1BUser(models.Model):
+    master_id = models.BigIntegerField(unique=True)
+    favorite_color = models.CharField(max_length=100, default="grey")
+    
+    class Meta(Test1BUserMeta):
+        pass

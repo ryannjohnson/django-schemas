@@ -18,44 +18,55 @@ def pytest_configure():
         'PORT': '5432',
         'ENVIRONMENTS': [],
     }
-    DATABASES = get_databases(
-        get_database(
-            alias='default',
-            override={
-                'ENVIRONMENTS': ['default']
-            },
-            original=DATABASE_DEFAULT),
-        get_database(
-            alias='primary',
-            override={
-                'ENVIRONMENTS': [
-                    'primary',
-                    'secondary',
-                ],
-                'HOST': 'localhost',
-            },
-            replicas=[
-                'localhost',
-            ],
-            original=DATABASE_DEFAULT),
-    )
-    
     settings.configure(
+        DATABASE_ENVIRONMENTS={
+            'test1-a': {
+                'SCHEMA_NAME': 'test1-a',
+                'ADDITIONAL_SCHEMAS': ['public'],
+            },
+            'test1-b': {},
+            'test2': {},
+            'test3': {},
+            'test4': {},
+            'test5': {},
+        },
         DEBUG_PROPAGATE_EXCEPTIONS=True,
-        DATABASES=DATABASES,
+        DATABASES=get_databases(
+            get_database(
+                alias='default',
+                override={
+                    'ENVIRONMENTS': ['default']
+                },
+                original=DATABASE_DEFAULT),
+            get_database(
+                alias='db1',
+                override={
+                    'ENVIRONMENTS': [
+                        'test1-a',
+                        'test2',
+                        'test3',
+                        'test4',
+                        'test5',
+                    ],
+                },
+                replicas=[
+                    'localhost',
+                ],
+                original=DATABASE_DEFAULT),
+            get_database(
+                alias='db2',
+                override={
+                    'ENVIRONMENTS': [
+                        'test1-b',
+                    ],
+                },
+                original=DATABASE_DEFAULT),
+        ),
         DATABASE_ROUTERS=[
             'django_schemas.routers.ExplicitRouter',
         ],
-        DATABASE_ENVIRONMENTS={
-            'primary': {
-                'SCHEMA_NAME': 'primary_schema',
-                'ADDITIONAL_SCHEMAS': ['public'],
-            },
-            'secondary': {},
-        },
         SITE_ID=1,
         SECRET_KEY='testingtestingtesting',
-        ROOT_URLCONF='tests.urls',
         MIDDLEWARE_CLASSES=(
             'django.middleware.common.CommonMiddleware',
         ),
@@ -63,7 +74,6 @@ def pytest_configure():
             'django_schemas',
             'tests',
         ),
-        TEST_RUNNER='tests.runner.Runner',
         PASSWORD_HASHERS=(
             'django.contrib.auth.hashers.MD5PasswordHasher',
         ),
