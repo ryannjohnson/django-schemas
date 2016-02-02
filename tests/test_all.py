@@ -1,13 +1,8 @@
-from django.test import TestCase, TransactionTestCase
+from tests.models import PrimaryUser, SecondaryThing
 
 
-class SampleTestClass(TestCase):
-    def setUp(self):
-        pass
-    def tearDown(self):
-        pass
-    def test_sample(self):
-        self.assertTrue(True)
+def test_sample():
+    assert True
 
 def test_all():
     """Test the entire extension.
@@ -16,4 +11,4 @@ def test_all():
     database, it can't be a series of seperate tests. Instead, we have
     to migrate and then run multiple tests.
     """
-    pass
+    assert False

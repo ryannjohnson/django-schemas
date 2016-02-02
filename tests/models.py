@@ -12,8 +12,8 @@ class PrimaryUser(models.Model):
 		pass
 
 
-class SecondaryThingsMeta:
+class SecondaryThingMeta:
 	db_environment = 'secondary'
 
-class SecondaryThings(models.Model):
+class SecondaryThing(models.Model):
 	name = models.CharField(max_length=100, default="untitled")

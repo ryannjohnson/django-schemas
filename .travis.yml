@@ -3,10 +3,12 @@ python:
   - "3.4"
 install:
   - pip install .
-  - pip install -r requirements.txt
+  - pip install -r requirements/requirements-testing.txt
 before_script:
-  - psql -U postgres -c "create database travis_ci_test;"
-  - psql -U postgres -c "create extension postgis"
+  - psql -U postgres -c "create database django_schemas"
+  - psql -U postgres -c "create user django_schemas with password 'django_schemas'"
+  - psql -U postgres -c "grant all on database django_schemas to django_schemas"
+  - psql -U postgres -c "create extension postgis" django_schemas
 script:
   - tox
 test:
