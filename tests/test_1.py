@@ -6,10 +6,9 @@ from django_schemas.utils import dict_fetchall
 import json
 import pytest
 from tests.models import Test1AUser, Test1BUser
-from unittest import TestCase
+from django.test import TestCase
 
 
-@pytest.mark.django_db
 class Test1(TestCase):
     
     def test_1(self):
