@@ -4,7 +4,7 @@ from django_schemas.utils import get_databases, get_database
 
 
 DATABASE_DEFAULT = {
-    'ENGINE': 'django_schemas.backends.postgis.wrapper',
+    'ENGINE': 'django_schemas.backends.postgres.wrapper',
     'NAME': 'django_schemas',
     'USER': 'django_schemas',
     'PASSWORD': 'django_schemas',
