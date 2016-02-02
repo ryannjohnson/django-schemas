@@ -30,7 +30,6 @@ def pytest_configure():
             'test4': {},
             'test5': {},
         },
-        DEBUG_PROPAGATE_EXCEPTIONS=True,
         DATABASES=get_databases(
             get_database(
                 alias='default',
@@ -65,7 +64,7 @@ def pytest_configure():
         DATABASE_ROUTERS=[
             'django_schemas.routers.ExplicitRouter',
         ],
-        SITE_ID=1,
+        DEBUG_PROPAGATE_EXCEPTIONS=True,
         SECRET_KEY='testingtestingtesting',
         MIDDLEWARE_CLASSES=(
             'django.middleware.common.CommonMiddleware',

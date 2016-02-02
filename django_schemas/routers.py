@@ -10,7 +10,7 @@ from .utils import dbs_by_environment, is_read_db
 import random
 import re
 
-from .wrapper import base as WrapperBase
+from .backends import conf
 
 
 class ExplicitRouter:
@@ -92,20 +92,20 @@ class ExplicitRouter:
             if model_env in db_envs:
                 
                 # Is there a specific schema to adhere to?
-                global WrapperBase
+                global conf
                 env_settings = settings.DATABASE_ENVIRONMENTS[model_env]
                 specific_schema = env_settings.get('SCHEMA_NAME', None)
                 
                 # If there is one, adhere to it
                 if specific_schema:
-                    return WrapperBase.SCHEMA_NAME == specific_schema
+                    return conf.SCHEMA_NAME == specific_schema
                 
                 # Is an environment set on the wrapper, too?
-                if WrapperBase.ENVIRONMENT_NAME:
-                    return WrapperBase.ENVIRONMENT_NAME == model_env
+                if conf.ENVIRONMENT_NAME:
+                    return conf.ENVIRONMENT_NAME == model_env
                 
                 # Is it totally free range?
-                if not specific_schema and not WrapperBase.SCHEMA_NAME:
+                if not specific_schema and not conf.SCHEMA_NAME:
                     return True
         
         # Mismatch of environment settings
@@ -152,12 +152,12 @@ def set_db(schema=None, db=None, environment=None):
             routing and migration.
     
     """
-    global WrapperBase
-    WrapperBase.SCHEMA_NAME = schema
-    WrapperBase.ENVIRONMENT_NAME = environment
-    WrapperBase.ADDITIONAL_SCHEMAS = []
+    global conf
+    conf.SCHEMA_NAME = schema
+    conf.ENVIRONMENT_NAME = environment
+    conf.ADDITIONAL_SCHEMAS = []
     
     # If environment has additional schemas, include them
     a = settings.DATABASE_ENVIRONMENTS.get("ADDITIONAL_SCHEMAS", None)
     if a and isinstance(a, list):
-        WrapperBase.ADDITIONAL_SCHEMAS = a
+        conf.ADDITIONAL_SCHEMAS = a
