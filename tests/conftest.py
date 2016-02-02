@@ -21,7 +21,7 @@ def pytest_configure():
     settings.configure(
         DATABASE_ENVIRONMENTS={
             'test1-a': {
-                'SCHEMA_NAME': 'test1-a',
+                'SCHEMA_NAME': 'test1_a',
                 'ADDITIONAL_SCHEMAS': ['public'],
             },
             'test1-b': {},
@@ -65,6 +65,7 @@ def pytest_configure():
             'django_schemas.routers.ExplicitRouter',
         ],
         DEBUG_PROPAGATE_EXCEPTIONS=True,
+        TEST_RUNNER='tests.runner.Runner',
         SECRET_KEY='testingtestingtesting',
         MIDDLEWARE_CLASSES=(
             'django.middleware.common.CommonMiddleware',

@@ -1,6 +1,6 @@
 from django.db.backends.postgresql_psycopg2.base import DatabaseWrapper
 
-from ...conf import ADDITIONAL_SCHEMAS, SCHEMA_NAME
+from ... import conf
 
 
 class DatabaseWrapper(DatabaseWrapper):
@@ -25,11 +25,11 @@ class DatabaseWrapper(DatabaseWrapper):
         point to that schema.
         """
         cursor = super(DatabaseWrapper, self)._cursor()
-        if SCHEMA_NAME:
-            query = "CREATE SCHEMA IF NOT EXISTS %s; " % SCHEMA_NAME
-            search_path = SCHEMA_NAME
-            if ADDITIONAL_SCHEMAS:
-                search_path += ', ' + ', '.join(ADDITIONAL_SCHEMAS)
+        if conf.SCHEMA_NAME:
+            query = "CREATE SCHEMA IF NOT EXISTS %s; " % conf.SCHEMA_NAME
+            search_path = conf.SCHEMA_NAME
+            if conf.ADDITIONAL_SCHEMAS:
+                search_path += ', ' + ', '.join(conf.ADDITIONAL_SCHEMAS)
             query += "SET search_path = %s;" % search_path
             cursor.execute(query)
         return cursor
