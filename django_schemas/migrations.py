@@ -62,7 +62,7 @@ def flush(db, schema):
     
     """
     cursor = connections[db].cursor()
-    cursor.execute("DROP SCHEMA %s CASCADE" % schema)
+    cursor.execute("DROP SCHEMA IF EXISTS %s CASCADE" % schema)
     
     
 def upgrade_to_big_keys(db, schema):

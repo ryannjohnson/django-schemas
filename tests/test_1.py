@@ -16,9 +16,14 @@ class Test1(TestCase):
         them across different environments and databases, and then test the
         `set_db` methods of each model.
         """
+        # Flush in the event of errors
+        flush(db='db1', schema='test1_a')
+        flush(db='db1', schema='test1_b')
+        flush(db='db2', schema='test1_b')
+        
         # Do the migrations for each environment
         migrate(db='db1', environment='test1-a', big_ints=True)
-        migrate(db='db1', schema='test1_b', environment='test1-b', big_ints=True)
+        migrate(db='db1', schema='test1_b', environment='test1-b', big_ints=False)
         migrate(db='db2', schema='test1_b', environment='test1-b', big_ints=True)
         
         # Gather the results afterwards
@@ -66,6 +71,10 @@ class Test1(TestCase):
         u2a = Test1AUser.inherit_db(u1a).objects.get(pk=2)
         u1b = u1a.b_user()
         u2b = Test1BUser.set_db("db2","test1_b").objects.get(master_id=u2a.pk)
+        
+        # Test them against one another
+        self.assertTrue(u1b.master_id == u1a.pk)
+        self.assertTrue(u2b.master_id == u2a.pk)
         
         # Clean up after ourselves
         flush(db='db1', schema='test1_a')

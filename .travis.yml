@@ -5,10 +5,12 @@ install:
   - pip install .
   - pip install -r requirements/requirements-testing.txt
 before_script:
-  - psql -U postgres -c "create database django_schemas"
   - psql -U postgres -c "create user django_schemas with password 'django_schemas'"
+  - psql -U postgres -c "create database django_schemas"
   - psql -U postgres -c "grant all on database django_schemas to django_schemas"
-  - psql -U postgres -c "create extension postgis" django_schemas
+  - psql -U postgres -c "create database django_schemas_2"
+  - psql -U postgres -c "grant all on database django_schemas_2 to django_schemas"
+  - psql -U postgres -c "create extension postgis" django_schemas_2
 script:
   - tox
 test:
