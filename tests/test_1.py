@@ -19,8 +19,11 @@ class Test1(TestCase):
         # Create the migrations
         call_command('makemigrations','tests')
         
-        # Do the migrations for first environment
-        migrate(db='db1', environment='test1-a', big_ints=False)
+        # Do the migrations for each environment
+        migrate(db='db1', environment='test1-a', big_ints=True)
+        migrate(db='db2', schema='test1_b', environment='test1-b', big_ints=True)
+        
+        # Gather the results afterwards
         c1 = connections['db1'].cursor()
         c1.execute("""
             SELECT
@@ -30,10 +33,6 @@ class Test1(TestCase):
                 table_schema=%(schema)s
         """,{'schema':'test1_a'})
         a_results = dict_fetchall(c1)
-        with open('/var/www/projects/ryannjohnson/django-schemas/results1a.txt', 'w') as f:
-            f.write(json.dumps(a_results, indent=4))
-        
-        migrate(db='db2', schema='test1_b', environment='test1-b', big_ints=True)
         c2 = connections['db2'].cursor()
         c2.execute("""
             SELECT
@@ -42,9 +41,7 @@ class Test1(TestCase):
             WHERE 
                 table_schema=%(schema)s
         """,{'schema':'test1_b'})
-        b_results = dict_fetchall(c1)
-        with open('/var/www/projects/ryannjohnson/django-schemas/results1b.txt', 'w') as f:
-            f.write(json.dumps(b_results, indent=4))
+        b_results = dict_fetchall(c2)
         
         # Test and see that each schema has the correct tables
         a_tables = ['django_migrations','tests_test1auser']
@@ -53,8 +50,10 @@ class Test1(TestCase):
         b_collected = [a["table_name"] for a in b_results]
         for a in a_tables:
             self.assertTrue(a in a_collected)
+        self.assertTrue(len(a_tables) == len(a_collected))
         for a in b_tables:
             self.assertTrue(a in b_collected)
+        self.assertTrue(len(b_tables) == len(b_collected))
         
         
         # Wrap up with a flush
