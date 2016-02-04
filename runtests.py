@@ -18,7 +18,9 @@ settings.configure(
             'SCHEMA_NAME': 'test1_a',
             'ADDITIONAL_SCHEMAS': ['public'],
         },
-        'test1-b': {},
+        'test1-b': {
+            'ADDITIONAL_SCHEMAS': ['public'],
+        },
         'test2': {},
         'test3': {},
         'test4': {},
@@ -36,6 +38,7 @@ settings.configure(
             override={
                 'ENVIRONMENTS': [
                     'test1-a',
+                    'test1-b',
                     'test2',
                     'test3',
                     'test4',
@@ -49,6 +52,8 @@ settings.configure(
         get_database(
             alias='db2',
             override={
+                'ENGINE': 'django_schemas.backends.postgres.wrapper',
+                'NAME': 'django_schemas_2',
                 'ENVIRONMENTS': [
                     'test1-b',
                 ],
