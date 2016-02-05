@@ -69,7 +69,7 @@ class Test1(TestCase):
         # Retrieve rows
         u1a = Test1AUser.auto_db().objects.get(name="garfield1")
         u2a = Test1AUser.inherit_db(u1a).objects.get(pk=2)
-        u1b = u1a.b_user()
+        u1b = Test1BUser.set_db("db1","test1_b").objects.get(master_id=u1a.pk)
         u2b = Test1BUser.set_db("db2","test1_b").objects.get(master_id=u2a.pk)
         
         # Test them against one another

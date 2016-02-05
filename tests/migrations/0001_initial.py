@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             options={
                 'db_environment': 'test1-a',
             },
-            bases=(django_schemas.models.BaseModel, models.Model, tests.models.Test1AUserActions),
+            bases=(django_schemas.models.BaseModel, models.Model),
         ),
         migrations.CreateModel(
             name='Test1BUser',
