@@ -1,8 +1,19 @@
 import collections
 from copy import deepcopy
+from django.conf import settings
+from django_schemas.utils import get_methods_from_class
 import json
 import re
 from urllib.parse import urlencode
+
+
+CLONABLE_META_ATTRS = ['db_environment']
+"""The _meta attributes that should be copied from the parent.
+
+This allows users to create models with Meta classes inside as usual,
+instead of depending on inheritance for clones to get the same
+attributes.
+"""
 
 
 EXISTING_MODEL_CLONES = {}
@@ -77,20 +88,10 @@ def get_model(model_cls, options={}, **kwargs):
     # Start the meta dictionary
     meta_options = {}
     
-    # Try to get the source Meta class
-    import importlib
-    mod = importlib.import_module(model_cls.__module__)
-    
-    # Use the "ClassNameMeta" pattern
-    base_cls_name = model_cls.__name__.split('_')[0]
-    meta_cls = getattr(mod, base_cls_name + "Meta", None)
-    if meta_cls:
-        
-        # Ingest its meta fields
-        for attr in set(_get_class_attrs(meta_cls)):
-            if attr.startswith('_'):
-                continue
-            meta_options[attr] = getattr(meta_cls, attr)
+    # Import from the source Meta class by explicit keys
+    clonable_meta = getattr(settings,'CLONABLE_META_ATTRS',CLONABLE_META_ATTRS)
+    for attr in clonable_meta:
+        meta_options[attr] = getattr(model_cls._meta, attr, None)
     
     # Now add the supplied options (to override the meta)
     for field in options:
@@ -98,6 +99,9 @@ def get_model(model_cls, options={}, **kwargs):
     
     # Convert the fields into the proper format
     fields = _get_model_fields(model_cls)
+    
+    # Get any methods that might belong to this model alone
+    methods = get_methods_from_class(model_cls)
     
     # Make the new model based off the old one
     new_model = create_model(
@@ -107,6 +111,7 @@ def get_model(model_cls, options={}, **kwargs):
             module=model_cls.__module__,
             options=meta_options,
             bases=model_cls.__bases__,
+            attrs=methods,
             **kwargs)
     
     # Save this model for use while this process is alive
@@ -280,7 +285,10 @@ def create_model(
 
     # Set up a dictionary to simulate declarations within a class
     attrs = {'__module__': module, 'Meta': Meta}
-
+    
+    # Add in any additional methods or attributes to the class
+    attrs.update(kwargs.get('attrs', {}))
+    
     # Add in any fields that were provided
     if fields:
         if bases:

@@ -1,5 +1,6 @@
 from copy import deepcopy
 from django.conf import settings
+import inspect
 import logging
 import re
 
@@ -162,3 +163,48 @@ def dict_fetchall(cursor):
         dict(zip(columns, row))
         for row in cursor.fetchall()
     ]
+
+
+def get_methods_from_class(cls):
+    """Get a dict of methods from a given class.
+    
+    This function will ignore inherited methods or other attributes.
+    
+    Args:
+        cls (class): The class to scan.
+    
+    Returns:
+        dict: named methods.
+    """
+    output = {}
+    attrs = dir(cls)
+    for attr in attrs:
+        value = getattr(cls,attr)
+        original_cls = get_class_that_defined_method(value)
+        if not original_cls:
+            continue
+        if original_cls == cls:
+            output[attr] = value
+    return output
+
+
+def get_class_that_defined_method(meth):
+    """Returns the class that created the given method.
+    
+    A helper function for finding class methods amongst a list of many
+    methods. 
+    
+    Source:
+        http://stackoverflow.com/questions/3589311/get-defining-class-of-unbound-method-object-in-python-3/25959545#25959545
+    """
+    if inspect.ismethod(meth):
+        for cls in inspect.getmro(meth.__self__.__class__):
+           if cls.__dict__.get(meth.__name__) is meth:
+                return cls
+        meth = meth.__func__ # fallback to __qualname__ parsing
+    if inspect.isfunction(meth):
+        cls = getattr(inspect.getmodule(meth),
+                      meth.__qualname__.split('.<locals>', 1)[0].rsplit('.', 1)[0])
+        if isinstance(cls, type):
+            return cls
+    return None # not required since None would have been implicitly returned anyway

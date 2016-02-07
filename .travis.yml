@@ -10,6 +10,7 @@ before_script:
   - psql -U postgres -c "grant all on database django_schemas to django_schemas"
   - psql -U postgres -c "create database django_schemas_2"
   - psql -U postgres -c "grant all on database django_schemas_2 to django_schemas"
+  - psql -U postgres -c "grant all on database postgres to django_schemas"
   - psql -U postgres -c "create extension postgis" django_schemas_2
 script:
   - tox

@@ -52,7 +52,7 @@ settings.configure(
         get_database(
             alias='db2',
             override={
-                'ENGINE': 'django_schemas.backends.postgres.wrapper',
+                'ENGINE': 'django_schemas.backends.postgis.wrapper',
                 'NAME': 'django_schemas_2',
                 'ENVIRONMENTS': [
                     'test1-b',
@@ -70,6 +70,7 @@ settings.configure(
         'django.middleware.common.CommonMiddleware',
     ),
     INSTALLED_APPS=(
+        'django.contrib.gis',
         'django_schemas',
         'tests',
     ),
