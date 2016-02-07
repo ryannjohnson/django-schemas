@@ -12,6 +12,10 @@ class Test1AUser(models.Model):
     def arbitrary_method(self):
         pass
     
+    def get_child(self):
+        cls = Test1BUser.set_db(db=self.db, schema='test1_b')
+        return cls.objects.get(master_id=self.pk)
+    
     class Meta:
         db_environment = 'test1-a'
 
