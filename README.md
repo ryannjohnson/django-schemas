@@ -9,3 +9,7 @@ Extension for Python's Django framework to support multiple schemas and migratio
 - PostgreSQL >= 9.3
 - Python >= 3.4
 - Django >= 1.9
+
+## Rules
+
+- Model class names must not end with '_' or contain double '__'

@@ -149,15 +149,19 @@ def _get_cloned_model(model_cls, options={}):
     options_temp = collections.OrderedDict(sorted(options_temp.items()))
     
     # Make the serial name for the model
-    matches = re.match(r'^([A-Za-z]+)',model_cls.__name__)
-    serial_name = matches.group(1) + '_'
+    matches = re.match(r'^(.+?)__',model_cls.__name__)
+    if not matches:
+        match = model_cls.__name__
+    else:
+        match = matches.group(1)
+    serial_name = match + '__'
     regex_sub = re.compile(r'[^a-zA-Z0-9_]')
-    serial_name += regex_sub.sub(r'', db_name) + '_'
-    serial_name += regex_sub.sub(r'', schema_name) + '_'
+    serial_name += regex_sub.sub(r'', db_name) + '__'
+    serial_name += regex_sub.sub(r'', schema_name) + '__'
     for key, value in options_temp.items():
         serial_name += regex_sub.sub(r'',str(key))
         serial_name += regex_sub.sub(r'', str(value))
-        serial_name += '_'
+        serial_name += '__'
     
     # Check for the class in the existing pile
     existing_clone = None
@@ -367,7 +371,8 @@ def clone_related_field(field_obj, db, schema):
         setattr(new_field_obj, attr, value)
     
     # Make sure this new field reflects the correct target
-    new_field_obj.model = new_field_obj.rel.to = new_model_cls
+    new_field_obj.model = new_model_cls
+    new_field_obj.rel.model = new_model_cls
     
     # Return the fresh field
     return new_field_obj

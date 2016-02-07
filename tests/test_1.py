@@ -5,7 +5,7 @@ from django.test import TestCase
 from django_schemas.migrations import flush, migrate
 from django_schemas.utils import dict_fetchall
 import json
-from tests.models import Test1AUser, Test1BUser
+from tests.models import Test1AUser, Test1BCar, Test1BUser
 
 
 class Test1(TestCase):
@@ -45,7 +45,7 @@ class Test1(TestCase):
         
         # Test and see that each schema has the correct tables
         a_tables = ['django_migrations','tests_test1auser']
-        b_tables = ['django_migrations','tests_test1buser']
+        b_tables = ['django_migrations','tests_test1buser','tests_test1bcar']
         a_collected = [a["table_name"] for a in a_results]
         b1_collected = [a["table_name"] for a in b1_results]
         b2_collected = [a["table_name"] for a in b2_results]
@@ -78,6 +78,13 @@ class Test1(TestCase):
         # Test them against one another
         self.assertTrue(u1b.master_id == u1a.pk)
         self.assertTrue(u2b.master_id == u2a.pk)
+        
+        # Try adding a car to the mix
+        c1b1 = Test1BCar.inherit_db(u1b).objects.create(user=u1b, color="green")
+        c1b2 = u1b.test1bcar_set.create(color="yellow")
+        
+        # Try to mix schemas (and fail)
+        c2b3 = Test1BCar.inherit_db(u2b).objects.create(user=u1b, color="orange")
         
         # Clean up after ourselves
         flush(db='db1', schema='test1_a')
