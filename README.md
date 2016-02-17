@@ -147,7 +147,7 @@ Models extended from django-schemas will have a few extra methods and properties
 
 - **`set_db(db, schema)`**: Explicitly set which db and schema a model should save and query from.
 - **`inherit_db(cls)`**: Implicitly set a model's db and schema based on another model class or model object's currently set db and schema.
-- **`auto_db()`**: See below.
+- **`auto_db()`**: Used internally for single-schema environments.
 - **`db_name`**: Returns the model's db.
 - **`schema_name`**: Returns the model's schema.
 
@@ -163,7 +163,7 @@ To set up these models, we add an extra setting to our environment declaration:
 DATABASE_ENVIRONMENTS = {
     'sample_environment': {
         'SCHEMA_NAME': 'single_schema',
-    }
+    },
 }
 ```
 
@@ -188,7 +188,7 @@ DATABASES = {
         'ENVIRONMENTS': [
             'single_schema', # 2nd writable declaration - will break the rule
         ],
-    }
+    },
 }
 ```
 
