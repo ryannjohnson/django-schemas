@@ -54,8 +54,16 @@ class BaseModel:
             A copy of this class with modified attributes.
         
         """
-        db = model._meta.db_name
-        schema = model._meta.schema_name
+        db = getattr(model._meta, 'db_name', None)
+        schema = getattr(model._meta, 'schema_name', None)
+        
+        # Were they set alread?
+        if not db or not schema:
+            new_model = model.auto_db() # Throws a ConfigError
+            db = new_model._meta.db_name
+            schema = new_model._meta.schema_name
+        
+        # Return the new class
         return cls.set_db(db=db, schema=schema)
     
     @classmethod
@@ -92,12 +100,18 @@ class BaseModel:
     @property
     def db_name(self):
         """Respond with the database name attached to this model."""
-        return getattr(self._meta, 'db_name', None)
+        db = getattr(self._meta, 'db_name', None)
+        if not db:
+            db = getattr(self.auto_db()._meta, 'db_name', None)
+        return db
     
     @property
     def schema_name(self):
         """Respond with the schema name attached to this model."""
-        return getattr(self._meta, 'schema_name', None)
+        schema = getattr(self._meta, 'schema_name', None)
+        if not schema:
+            schema = getattr(self.auto_db()._meta, 'schema_name', None)
+        return schema
     
     @property
     def table_name(self):

@@ -59,7 +59,7 @@ class Test1(TestCase):
         self.assertTrue(len(b_tables) == len(b2_collected))
         
         # Make a row for each table
-        user1a = Test1AUser.auto_db().objects.create(name="garfield1", db="db1")
+        user1a = Test1AUser.objects.create(name="garfield1", db="db1")
         user2a = Test1AUser.auto_db().objects.create(name="garfield2", db="db2")
         user1b = Test1BUser.set_db("db1","test1_b").objects.create(
                 master_id=user1a.pk, color="blue")
@@ -70,7 +70,7 @@ class Test1(TestCase):
         user1a.arbitrary_method()
         
         # Retrieve rows
-        u1a = Test1AUser.auto_db().objects.get(name="garfield1")
+        u1a = Test1AUser.objects.get(name="garfield1")
         u2a = Test1AUser.inherit_db(u1a).objects.get(pk=2)
         u1b = u1a.get_child()
         u2b = Test1BUser.set_db("db2","test1_b").objects.get(master_id=u2a.pk)
@@ -84,6 +84,8 @@ class Test1(TestCase):
             c2b3 = Test1BCar.inherit_db(u2b).objects.create(user=u1b, color="orange")
         except ValueError as e:
             pass
+        else:
+            raise
         
         # Try adding a car to the mix
         #c1b1 = Test1BCar.inherit_db(u1b).objects.create(user=u1b, color="green")
