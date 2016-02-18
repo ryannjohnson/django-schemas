@@ -10,23 +10,18 @@ Extension for Python's Django framework to support multiple schemas and migratio
 - Python >= 3.4
 - Django >= 1.9
 
-## Getting Started
-
 ### Installation
-
-#### Pip
-
-This package isn't registered on pypi yet, but you can install it straight from the repo like this:
 
 ```sh
 $ pip install django_schemas
 ```
 
+## Getting Started
+
 ### Terminology
 
-In the context of django-schemas, there are a few terms that need explaining:
-
-- **Environment**: Refers to a group of models that are migrated as a unit. This allows for keeping different models in different schemas or databases.
+- **Environment**: refers to a group of models that are migrated as a unit. This allows for keeping different models in different schemas or databases.
+- **Schema**: refers to a PostgreSQL schema, which basically equates to a namespace for tables.
 
 ### Configuration
 
@@ -48,7 +43,7 @@ DATABASE_ENVIRONMENTS = {
 }
 ```
 
-And to register a model to that environemnt, have the model and its fields use django-schemas' `models` module and add the `db_environment` to the model's `Meta` class.
+And to register a model to that environment, have the model and its fields use django-schemas' `models` module and add the `db_environment` to the model's `Meta` class.
 
 ```py
 from django_schemas import models
@@ -57,7 +52,7 @@ class SampleUser(models.Model):
     name = models.CharField(max_length=100)
     
     class Meta:
-        db_environemnt = 'sample_environment'
+        db_environment = 'sample_environment'
 ```
 
 Lastly for configuration, databases that use django-schemas will need to use the django-schemas `ENGINE` and include an `ENVIRONMENTS` variable to implement database routing.
@@ -86,7 +81,7 @@ For read replica databases, just add another database and append `-read#` to the
 
 Keep in mind that instantiated django-schemas models are each bound to a specific **database** and **schema**, so read replica rules will only apply for models attached to a database with a read replica present. 
 
-Please refer to this [sample settings file](https://github.com/ryannjohnson/django-schemas/blob/master/examples/settings.py) for more detailed explainations of how to configure your Django project.
+Please refer to this [sample settings file](https://github.com/ryannjohnson/django-schemas/blob/master/examples/settings.py) for more detailed explanations of how to configure your Django project.
 
 ### Migrating Databases
 
@@ -151,7 +146,7 @@ Models extended from django-schemas will have a few extra methods and properties
 - **`db_name`**: Returns the model's db.
 - **`schema_name`**: Returns the model's schema.
 
-*Note: This does mean that database models cannot have fields with the same names as these methods/properties.*
+*Note: This means that database models cannot have fields with the same names as these methods/properties.*
 
 ### Single-Schema Environments
 
@@ -202,7 +197,7 @@ SampleUser.objects.get(name="Sample User 2")
 
 ### Foreign Keys
 
-Models in the same environments can be assigned relationships normally with foreign keys. When using the model api, related models will also throw an error if a model from the wrong db/schema combo try to be connected directly as an object.
+Models in the same environments can be assigned relationships normally with foreign keys. When using the model API, related models will also throw an error if a model from the wrong db/schema combo try to be connected directly as an object.
 
 ```py
 user1 = SampleUser.set_db('db1','schema1').objects.create(name="User 1")
@@ -214,6 +209,22 @@ car1 = SampleCar.inherit_db(user1).objects.create(name="Car 1", user=user1)
 car2 = SampleCar.set_db('db1','schema2').objects.create(
         name="Car 2", user=user1)
 ```
+
+### PostGIS
+
+In order to use GeoDjango's postgis backend, just switch out your databases' `ENGINE` property with `django_schemas.backends.postgis.wrapper`.
+
+If the PostGIS extension is installed the `public` schema of your database, then you may need to add it into the `search_path` during migrations. You can do this by adding `ADDITIONAL_SCHEMAS` to your environment registration.
+
+```py
+DATABASE_ENVIRONMENTS = {
+    'sample_environment': {
+        'ADDITIONAL_SCHEMAS': ['public'],
+    }
+}
+```
+
+This will make PostGIS available when migrations try to make `geometry` columns, indexes, etc.
 
 ## Limitations
 
