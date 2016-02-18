@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.org/ryannjohnson/django-schemas.svg?branch=master)](https://travis-ci.org/ryannjohnson/django-schemas)
 [![PyPI version](https://img.shields.io/pypi/v/django-schemas.svg)](https://pypi.python.org/pypi/django-schemas)
 
+![set_db](https://i.imgur.com/62aHk5H.gif)
+
 Extension for Python's Django framework to support multiple schemas and migrations for PostgreSQL.
 
 ## Requirements & Installation
