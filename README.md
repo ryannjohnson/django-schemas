@@ -4,13 +4,15 @@
 
 Extension for Python's Django framework to support multiple schemas and migrations for PostgreSQL.
 
-## Requirements
+## Requirements & Installation
+
+Currently, this package has been successfully tested with the following tools:
 
 - PostgreSQL >= 9.3
 - Python >= 3.4
 - Django >= 1.9
 
-### Installation
+To install via `pip`, run the following:
 
 ```sh
 $ pip install django_schemas
@@ -29,11 +31,12 @@ In order to run migrations for schemas and environments, we need to add django-s
 
 ```py
 INSTALLED_APPS = (
+    ...
     'django_schemas',
 )
 ```
 
-This package revolves around defining "environments" for models to be a part of. Every model can be a member of a single environment, and every database can contain any number of environments.
+This package revolves around defining "environments". Environments are groups of models that can be migrated as a unit. 
 
 To register an environment, add the following to Django's settings:
 
@@ -43,7 +46,7 @@ DATABASE_ENVIRONMENTS = {
 }
 ```
 
-And to register a model to that environment, have the model and its fields use django-schemas' `models` module and add the `db_environment` to the model's `Meta` class.
+To register a model to an environment, you must define your model as a descendant of `django_schemas.models.Model`. Also, the model must have `db_environment` defined in its meta class.
 
 ```py
 from django_schemas import models
@@ -55,7 +58,9 @@ class SampleUser(models.Model):
         db_environment = 'sample_environment'
 ```
 
-Lastly for configuration, databases that use django-schemas will need to use the django-schemas `ENGINE` and include an `ENVIRONMENTS` variable to implement database routing.
+You may continue to use `django_schemas.models` for model fields, as the module extends Django's own `models`.
+
+Databases will need the following `ENGINE` and `ENVIRONMENTS` variables in Django's settings file, as well as adding `django_schemas.routers.ExplicitRouter` to the `DATABASE_ROUTERS` list.
 
 ```py
 DATABASES = {
@@ -77,21 +82,21 @@ DATABASE_ROUTERS = [
 ]
 ```
 
-For read replica databases, just add another database and append `-read#` to the alias. For example, a read replica for `default` could be `default-read1`. If any read replicas are set in this way, django-schemas' `ExplicitRouter` will automatically use them for applicable model read operations.
+Read replicas are automatically handled by django-schemas. To create one, append `-read#` to the alias of a new database. For example, a read replica for `default` could be `default-read1`. 
 
-Keep in mind that instantiated django-schemas models are each bound to a specific **database** and **schema**, so read replica rules will only apply for models attached to a database with a read replica present. 
+Read database selection is currently "dumb" and will use random read replicas if any are provided.
 
-Please refer to this [sample settings file](https://github.com/ryannjohnson/django-schemas/blob/master/examples/settings.py) for more detailed explanations of how to configure your Django project.
+Please refer to this [sample settings file](https://github.com/ryannjohnson/django-schemas/blob/master/examples/settings.py) for more detailed explanations of how to configure your Django project settings.
 
 ### Migrating Databases
 
-Making migrations on Django is no different than usual. 
+Create migrations by running Django's `makemigrations` command. 
 
 ```sh
 $ ./manage.py makemigrations
 ```
 
-When migrating a database, the `migrate_schema` command is used:
+When migrating a database schema, use the `migrate_schema` command:
 
 ```sh
 $ ./manage.py migrate_schema default \
@@ -100,9 +105,9 @@ $     --schema sample_schema \
 $     --big-ints
 ```
 
-The `default` argument is referring to the database alias you'd like to migrate. The `environment` option refers to the model group you're migrating. The `schema` option is any schema of your choosing. The `big-ints` option is optional and will attempt to turn all 32-bit integers and serials to 64-bit versions of themselves.
+`default` is the alias of the database to migrate. `environment` selects the model group to migrate. `schema` names the PostgreSQL schema to migrate, and it's only required if the chosen environment doesn't have a `SCHEMA_NAME` set. `big-ints` is optional and will attempt to turn all 32-bit integer and serial columns to their respective 64-bit versions.
 
-Migrations can also be run from within Django.
+Migrations can also be run inside your Django project.
 
 ```py
 from django_schemas.migrations import migrate
@@ -140,17 +145,17 @@ user1 = model_cls.objects.get(name='Sample Name')
 
 Models extended from django-schemas will have a few extra methods and properties:
 
-- **`set_db(db, schema)`**: Explicitly set which db and schema a model should save and query from.
-- **`inherit_db(cls)`**: Implicitly set a model's db and schema based on another model class or model object's currently set db and schema.
-- **`auto_db()`**: Used internally for single-schema environments.
-- **`db_name`**: Returns the model's db.
-- **`schema_name`**: Returns the model's schema.
+- `set_db(db, schema)`: Explicitly set which db and schema a model should save and query from.
+- `inherit_db(cls)`: Implicitly set a model's db and schema based on another model class or model object's currently set db and schema.
+- `auto_db()`: Used internally for single-schema environments.
+- `db_name`: Returns the model's db.
+- `schema_name`: Returns the model's schema.
 
 *Note: This means that database models cannot have fields with the same names as these methods/properties.*
 
 ### Single-Schema Environments
 
-Sometimes, there's no reason to use multiple schemas or databases for models. Some models just exist in one place.
+Some models are designed to only exist in one place. 
 
 To set up these models, we add an extra setting to our environment declaration:
 
@@ -162,7 +167,7 @@ DATABASE_ENVIRONMENTS = {
 }
 ```
 
-Also, we must make sure that the environment is registered to **only one writable database** in Django's settings.
+We must also make sure that the environment is registered to **only one writable database** in Django's settings.
 
 ```py
 DATABASES = {
