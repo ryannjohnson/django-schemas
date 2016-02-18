@@ -18,44 +18,122 @@ To install via `pip`, run the following:
 $ pip install django_schemas
 ```
 
-## Getting Started
+## Quick Start
 
-### Configuration
+There are 4 main steps to using this package.
 
-In order to run migrations for schemas and environments, we need to add django-schemas to the list of installed apps like so:
+### 1. Django Settings
+
+Add the following to your `settings.py` file.
 
 ```py
+# Bootstraps services
 INSTALLED_APPS = (
     ...
     'django_schemas',
 )
-```
 
-This package revolves around defining "environments". Environments are groups of models that can be migrated as a unit. 
-
-To register an environment, add the following to Django's settings:
-
-```py
+# Declares your first environment
 DATABASE_ENVIRONMENTS = {
     'sample_environment': {},
 }
+
+# Update `ENGINE` and add `ENVIRONMENTS`
+DATABASES = {
+    'default': {
+        'ENGINE': 'django_schemas.backends.postgres.wrapper',
+        ...
+        'ENVIRONMENTS': [
+            'sample_environment',
+        ],
+    }
+}
+
+# Add router to top of list (or alone)
+DATABASE_ROUTERS = [
+    'django_schemas.routers.ExplicitRouter',
+    ...
+]
 ```
 
-To register a model to an environment, you must define your model as a descendant of `django_schemas.models.Model`. Also, the model must have `db_environment` defined in its meta class.
+### 2. Django Models
+
+Add the following to a `models.py` file.
 
 ```py
+# Import from django_schemas
 from django_schemas import models
 
+# Use imported `models` for everything
 class SampleUser(models.Model):
     name = models.CharField(max_length=100)
     
+    # Use value from `DATABASE_ENVIRONMENTS`
     class Meta:
         db_environment = 'sample_environment'
 ```
 
-You may continue to use `django_schemas.models` for model fields, as the module extends Django's own `models`.
+### 3. Migrations
 
-Databases will need the following `ENGINE` and `ENVIRONMENTS` variables in Django's settings file, as well as adding `django_schemas.routers.ExplicitRouter` to the `DATABASE_ROUTERS` list.
+Add models to a database and schema via the command line.
+
+```sh
+$ python manage.py makemigrations
+$ python manage.py migrate_schema default \
+>     --environment sample_environment \
+>     --schema sample_schema
+```
+
+### 4. Use Schemas
+
+Models have new built-in methods for databases and schemas.
+
+```py
+# Set schema manually
+user_cls = SampleUser.set_db('default','sample_schema')
+
+# Inherit schema from another model
+car_cls = SampleCar.inherit_db(user_cls)
+
+# Execute queries with schema models
+user_cls.objects.create(name="Sample Name")
+user1 = user_cls.objects.get(name="Sample Name")
+```
+
+## Advanced Configuration
+
+All customization takes place in Django `settings.py` and `models.py` files.
+
+### Environments
+
+This package revolves around defining "environments". Environments are groups of models that can be migrated as a unit, and they are registered in this way:
+
+```py
+DATABASE_ENVIRONMENTS = {
+    'sample_environment': {
+        'SCHEMA_NAME': 'sample_schema',
+        'ADDITIONAL_SCHEMAS': ['public'],
+    },
+}
+```
+
+#### Definitions
+
+##### `sample_environment`
+
+This is the name of the environment, which gets referred to anytime an environment must be specified. It must always have a dict as its value.
+
+##### `SCHEMA_NAME` (optional)
+
+If specified, it will force what schema this environment uses. This can be useful for models that only exist in one place.
+
+##### `ADDITIONAL_SCHEMAS` (optional)
+
+This parameter allows you to append schemas to the [search_path](http://www.postgresql.org/docs/9.3/static/sql-set.html#AEN81536) when migrating a database. A common use case is being able to use the postgis extension from the `public` schema on your custom schema.
+
+### Databases
+
+Databases are setup a little bit differently with django-schemas.
 
 ```py
 DATABASES = {
@@ -64,26 +142,62 @@ DATABASES = {
         'NAME': 'dbname',
         'USER': 'dbuser',
         'PASSWORD': 'dbpass',
-        'HOST': 'localhost',
+        'HOST': '192.168.1.10',
         'PORT': '5432',
         'ENVIRONMENTS': [
             'sample_environment',
         ],
-    }
+    },
+    'default-read1': {
+        'ENGINE': 'django_schemas.backends.postgres.wrapper',
+        'NAME': 'dbname',
+        'USER': 'dbuser',
+        'PASSWORD': 'dbpass',
+        'HOST': '192.168.1.11',
+        'PORT': '5432',
+    },
 }
-
-DATABASE_ROUTERS = [
-    'django_schemas.routers.ExplicitRouter',
-]
 ```
 
-Read replicas are automatically handled by django-schemas. To create one, append `-read#` to the alias of a new database. For example, a read replica for `default` could be `default-read1`. 
+#### Definitions
 
-Read database selection is currently "dumb" and will use random read replicas if any are provided.
+##### `ENGINE`
 
-Please refer to this [sample settings file](https://github.com/ryannjohnson/django-schemas/blob/master/examples/settings.py) for more detailed explanations of how to configure your Django project settings.
+Normally, this can only be `django_schemas.backends.postgres.wrapper`. However, if you're using PostGIS, you should use `django_schemas.backends.postgis.wrapper` instead.
 
-### Migrating Databases
+##### `ENVIRONMENTS`
+
+This is a list of environments that can be used with this database. This helps govern what migrations and operations can happen where.
+
+In addition, if an environment's `SCHEMA_NAME` is set and only one database has that particular environment, then models assigned to that environment can now omit the `set_db()` method entirely when running queries.
+
+##### `default-read1` (optional)
+
+Database aliases that match the regex pattern `\-read[1-9]+\d*$` will be classified as a "read replica" by the router, and will be treated as such. 
+
+Replicas don't need an `ENVIRONMENTS` parameter since the write database will already have it. If `ENVIRONMENTS` is set, then it will be ignored.
+
+When read replicas are set, queries will randomly choose a replica to select from. 
+
+### Models
+
+Django-schemas models are extensions of Django models, so models only need to inherit from `django_schemas.models.Model` and declare a `db_environment` in their meta classes.
+
+```py
+from django_schemas import models
+
+class SampleCar(models.Model):
+    name = models.CharField(max_length=100)
+    user = models.ForeignKey(SampleUser)
+    
+    def object_method(self):
+        pass
+    
+    class Meta:
+        db_environment = 'sample_environment'
+```
+
+## Migrations (CLI)
 
 Create migrations by running Django's `makemigrations` command. 
 
@@ -100,7 +214,24 @@ $     --schema sample_schema \
 $     --big-ints
 ```
 
-`default` is the alias of the database to migrate. `environment` selects the model group to migrate. `schema` names the PostgreSQL schema to migrate, and it's only required if the chosen environment doesn't have a `SCHEMA_NAME` set. `big-ints` is optional and will attempt to turn all 32-bit integer and serial columns to their respective 64-bit versions.
+#### Definitions
+
+##### `default` 
+
+This is the alias of the database to migrate.
+
+##### `--environment`
+
+Designating an environment tells Django which models are being migrated.
+
+##### `--schema`
+
+This is only required for environments without a `SCHEMA_NAME`.
+
+##### `--big-ints` (optional)
+Will attempt to turn all 32-bit integer and serial columns to their respective 64-bit versions.
+
+## Migrations (Python)
 
 Migrations can also be run inside your Django project.
 
@@ -120,7 +251,7 @@ from django_schemas.migrations import flush
 flush(db='default', schema='sample_schema')
 ```
 
-### Using Models
+## Using Models
 
 Django-schema models have class methods that allow you to designate databases and schemas.
 
@@ -150,44 +281,7 @@ Models extended from django-schemas will have a few extra methods and properties
 
 ### Single-Schema Environments
 
-Some models are designed to only exist in one place. 
-
-To set up these models, we add an extra setting to our environment declaration:
-
-```py
-DATABASE_ENVIRONMENTS = {
-    'sample_environment': {
-        'SCHEMA_NAME': 'single_schema',
-    },
-}
-```
-
-We must also make sure that the environment is registered to **only one writable database** in Django's settings.
-
-```py
-DATABASES = {
-    'default': {
-        'ENGINE': 'django_schemas.backends.postgres.wrapper',
-        'ENVIRONMENTS': [
-            'single_schema', # 1st writable declaration here
-        ],
-    },
-    'default-read1': {
-        'ENGINE': 'django_schemas.backends.postgres.wrapper',
-        'ENVIRONMENTS': [
-            'single_schema', # Totally cool because this is a read replica
-        ],
-    },
-    'other': {
-        'ENGINE': 'django_schemas.backends.postgres.wrapper',
-        'ENVIRONMENTS': [
-            'single_schema', # 2nd writable declaration - will break the rule
-        ],
-    },
-}
-```
-
-With this configuration, we don't have to declare any database or schema when we use models in this environment.
+Within environments with a `SCHEMA_NAME` and only one database (not including read replicas), no methods are needed to set the db/schema.
 
 ```py
 # Both work without db/schema declarations
@@ -210,23 +304,9 @@ car2 = SampleCar.set_db('db1','schema2').objects.create(
         name="Car 2", user=user1)
 ```
 
-### PostGIS
-
-In order to use GeoDjango's postgis backend, just switch out your databases' `ENGINE` property with `django_schemas.backends.postgis.wrapper`.
-
-If the PostGIS extension is installed the `public` schema of your database, then you may need to add it into the `search_path` during migrations. You can do this by adding `ADDITIONAL_SCHEMAS` to your environment registration.
-
-```py
-DATABASE_ENVIRONMENTS = {
-    'sample_environment': {
-        'ADDITIONAL_SCHEMAS': ['public'],
-    }
-}
-```
-
 This will make PostGIS available when migrations try to make `geometry` columns, indexes, etc.
 
 ## Limitations
 
-- Reverse relationships are currently unsupported via the model API.
+- [Reverse relationships](https://docs.djangoproject.com/es/1.9/topics/db/queries/#following-relationships-backward) are currently unsupported via the model API.
 - Model class names must not end with an underscore or contain double underscores. This is because django-schemas uses the name of the model class in order to keep track of each model created for a specific schema.
