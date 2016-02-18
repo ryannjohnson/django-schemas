@@ -20,11 +20,6 @@ $ pip install django_schemas
 
 ## Getting Started
 
-### Terminology
-
-- **Environment**: refers to a group of models that are migrated as a unit. This allows for keeping different models in different schemas or databases.
-- **Schema**: refers to a PostgreSQL schema, which basically equates to a namespace for tables.
-
 ### Configuration
 
 In order to run migrations for schemas and environments, we need to add django-schemas to the list of installed apps like so:
