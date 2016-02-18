@@ -19,7 +19,7 @@ Extension for Python's Django framework to support multiple schemas and migratio
 This package isn't registered on pypi yet, but you can install it straight from the repo like this:
 
 ```sh
-$ pip install git+ssh://git@github.com/ryannjohnson/django-schemas.git
+$ pip install django_schemas
 ```
 
 ### Terminology
