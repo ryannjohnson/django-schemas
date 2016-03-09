@@ -7,7 +7,7 @@ Extension for Python's Django framework to support multiple schemas and migratio
 
 ## Requirements & Installation
 
-Currently, this package has been successfully tested with the following tools:
+This package has been successfully tested with the following tools:
 
 - PostgreSQL >= 9.3
 - Python >= 3.4

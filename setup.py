@@ -49,8 +49,12 @@ setup(
         classifiers=[
             'Development Status :: 3 - Alpha',
             'Environment :: Web Environment',
-            'Framework :: Django :: 1.8',
+            'Framework :: Django :: 1.9',
             'Intended Audience :: Developers',
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
             'Programming Language :: Python :: 3',
+        ],
+        install_requires=[
+            'Django >= 1.9.0',
+            'psycopg2',
         ])
