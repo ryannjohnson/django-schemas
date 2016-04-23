@@ -11,9 +11,14 @@ Extension for Python's Django framework to support multiple schemas and migratio
 
 This package has been successfully tested with the following tools:
 
-- PostgreSQL >= 9.3
-- Python >= 3.4
-- Django >= 1.9
+- PostgreSQL
+  - 9.3
+- Python
+  - 2.7
+  - 3.4
+  - 3.5
+- Django
+  - 1.9
 
 To install via `pip`, run the following:
 

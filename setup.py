@@ -47,14 +47,18 @@ setup(
         version=VERSION,
         packages=get_packages('django_schemas'),
         classifiers=[
-            'Development Status :: 3 - Alpha',
+            'Development Status :: 3 - Beta',
             'Environment :: Web Environment',
+            'Framework :: Django :: 1.8',
             'Framework :: Django :: 1.9',
             'Intended Audience :: Developers',
             'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+            'Programming Language :: Python :: 2.7',
             'Programming Language :: Python :: 3',
+            'Programming Language :: Python :: 3.4',
+            'Programming Language :: Python :: 3.5',
         ],
         install_requires=[
-            'Django >= 1.9.0',
+            'Django >= 1.8.0',
             'psycopg2',
         ])

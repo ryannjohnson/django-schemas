@@ -4,7 +4,11 @@ from django.conf import settings
 from django_schemas.utils import get_methods_from_class
 import json
 import re
-from urllib.parse import urlencode
+import sys
+if sys.version_info < (3,):
+    from urllib import urlencode
+else:
+    from urllib.parse import urlencode
 
 
 CLONABLE_META_ATTRS = ['db_environment']
