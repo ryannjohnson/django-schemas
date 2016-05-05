@@ -36,7 +36,6 @@ class Test1BCar(SchemaModel, models.Model):
 
 class Test1BLocation(SchemaModel, geo_models.Model):
     coord = geo_models.PointField()
-    objects = geo_models.GeoManager()
     
     class Meta:
         db_environment = 'test1-b'

@@ -70,6 +70,8 @@ class Test1(TestCase):
         # Make a row with geometry.
         location1a = Test1BLocation.set_db("db2","test1_b").objects.create(
                 coord=Point(-135.79, 31.97))
+        l1_all = Test1BLocation.inherit_db(location1a).objects.all()
+        self.assertTrue(type(l1_all[0].coord) == Point)
         
         # Test the arbitrary method transferal
         user1a.arbitrary_method()

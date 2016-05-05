@@ -69,11 +69,12 @@ DATABASE_ROUTERS = [
 Add the following to a `models.py` file.
 
 ```py
-# Import from django_schemas
-from django_schemas import models
+# Import from django and django_schemas
+from django.db import models
+from django_schemas.models import Model as SchemaModel
 
 # Use imported `models` for everything
-class SampleUser(models.Model):
+class SampleUser(SchemaModel, models.Model):
     name = models.CharField(max_length=100)
     
     # Use value from `DATABASE_ENVIRONMENTS`
@@ -189,12 +190,15 @@ When read replicas are set, queries will randomly choose a replica to select fro
 
 ### Models
 
-Django-schemas models are extensions of Django models, so models only need to inherit from `django_schemas.models.Model` and declare a `db_environment` in their meta classes.
+Schema-enabled models work as normal except for minor 2 additions:
+- Models must inherit from `django_schemas.models.Model` before Django's model.
+- The model Meta class must declare a `db_environment` variable.
 
 ```py
-from django_schemas import models
+from django.db import models
+from django_schemas.models import Model as SchemaModel
 
-class SampleCar(models.Model):
+class SampleCar(SchemaModel, models.Model):
     name = models.CharField(max_length=100)
     user = models.ForeignKey(SampleUser)
     
@@ -204,6 +208,8 @@ class SampleCar(models.Model):
     class Meta:
         db_environment = 'sample_environment'
 ```
+
+_It is important to note that models and fields derive from `django.db.models` beginning with version 0.2.0._ 
 
 ## Migrations (CLI)
 
@@ -312,7 +318,22 @@ car2 = SampleCar.set_db('db1','schema2').objects.create(
         name="Car 2", user=user1)
 ```
 
-This will make PostGIS available when migrations try to make `geometry` columns, indexes, etc.
+### PostGIS Models
+
+PostGIS is an example of functionality that comes with its own models in Django. As long as models inherit from `django_schemas.models.Model` first, then the model can inherit everything else from the models module.
+
+For PostGIS, your models will need to inherit from `django.contrib.gis.db.models.Model` instead of `django.db.models.Model`.
+
+```py
+from django.contrib.gis.db import models
+from django_schemas.models import Model as SchemaModel
+
+class SampleCar(SchemaModel, models.Model):
+    coordinate = models.PointField()
+    
+    class Meta:
+        db_environment = 'sample_environment'
+```
 
 ## Limitations
 
