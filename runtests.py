@@ -36,6 +36,7 @@ settings.configure(
         get_database(
             alias='db1',
             override={
+                'ENGINE': 'django_schemas.backends.postgis.wrapper',
                 'ENVIRONMENTS': [
                     'test1-a',
                     'test1-b',

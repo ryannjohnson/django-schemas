@@ -158,6 +158,8 @@ def set_db(schema=None, db=None, environment=None):
     conf.ADDITIONAL_SCHEMAS = []
     
     # If environment has additional schemas, include them
-    a = settings.DATABASE_ENVIRONMENTS.get("ADDITIONAL_SCHEMAS", None)
-    if a and isinstance(a, list):
-        conf.ADDITIONAL_SCHEMAS = a
+    a = settings.DATABASE_ENVIRONMENTS.get(environment, None)
+    if a:
+        b = a.get('ADDITIONAL_SCHEMAS', None)
+        if b and isinstance(b, list):
+            conf.ADDITIONAL_SCHEMAS = b

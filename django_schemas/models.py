@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.db.models import *
 from django.db import models as django_models
 from django.utils.translation import ugettext_lazy as _
 
@@ -10,7 +9,8 @@ from .utils import dbs_by_environment
 # Allow custom variables into the meta class.
 # http://stackoverflow.com/questions/1088431/adding-attributes-into-django-models-meta-class
 CUSTOM_META_VARS = ('db_name', 'schema_name', 'table_name', 'db_environment',)
-options.DEFAULT_NAMES = options.DEFAULT_NAMES + CUSTOM_META_VARS
+django_models.options.DEFAULT_NAMES = (
+        django_models.options.DEFAULT_NAMES + CUSTOM_META_VARS)
 
 
 class BaseModel:
@@ -121,7 +121,7 @@ class BaseModel:
             return name
         return getattr(self._meta, 'db_table', None)
 
-class Model(BaseModel, django_models.Model):
+class Model(BaseModel):
     """Layer in front of Django models."""
     
     def __init__(self, *args, **kwargs):
@@ -142,6 +142,3 @@ class Model(BaseModel, django_models.Model):
                 self._meta.table_name = self._meta.db_table
                 self._meta.db_table = '%s\".\"%s' % (
                         self._meta.schema_name, self._meta.table_name)
-    
-    class Meta:
-        abstract = True

@@ -1,7 +1,9 @@
-from django_schemas import models
+from django.contrib.gis.db import models as geo_models
+from django.db import models
+from django_schemas.models import Model as SchemaModel
 
 
-class Test1AUser(models.Model):
+class Test1AUser(SchemaModel, models.Model):
     name = models.CharField(max_length=100, unique=True, )
     db = models.CharField(max_length=63)
     
@@ -16,7 +18,7 @@ class Test1AUser(models.Model):
         db_environment = 'test1-a'
 
 
-class Test1BUser(models.Model):
+class Test1BUser(SchemaModel, models.Model):
     master_id = models.BigIntegerField(unique=True)
     color = models.CharField(max_length=100, default="grey")
     
@@ -24,9 +26,17 @@ class Test1BUser(models.Model):
         db_environment = 'test1-b'
 
 
-class Test1BCar(models.Model):
+class Test1BCar(SchemaModel, models.Model):
     user = models.ForeignKey(Test1BUser)
     color = models.CharField(max_length=100, default="blue")
+    
+    class Meta:
+        db_environment = 'test1-b'
+
+
+class Test1BLocation(SchemaModel, geo_models.Model):
+    coord = geo_models.PointField()
+    objects = geo_models.GeoManager()
     
     class Meta:
         db_environment = 'test1-b'

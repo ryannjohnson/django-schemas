@@ -1,11 +1,12 @@
 from django.conf import settings
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.db import connections
 from django.test import TestCase
 from django_schemas.migrations import flush, migrate
 from django_schemas.utils import dict_fetchall
 import json
-from tests.models import Test1AUser, Test1BCar, Test1BUser
+from tests.models import Test1AUser, Test1BCar, Test1BUser, Test1BLocation
 
 
 class Test1(TestCase):
@@ -45,7 +46,7 @@ class Test1(TestCase):
         
         # Test and see that each schema has the correct tables
         a_tables = ['django_migrations','tests_test1auser']
-        b_tables = ['django_migrations','tests_test1buser','tests_test1bcar']
+        b_tables = ['django_migrations','tests_test1buser','tests_test1bcar','tests_test1blocation']
         a_collected = [a["table_name"] for a in a_results]
         b1_collected = [a["table_name"] for a in b1_results]
         b2_collected = [a["table_name"] for a in b2_results]
@@ -65,6 +66,10 @@ class Test1(TestCase):
                 master_id=user1a.pk, color="blue")
         user2b = Test1BUser.set_db("db2","test1_b").objects.create(
                 master_id=user2a.pk, color="green")
+        
+        # Make a row with geometry.
+        location1a = Test1BLocation.set_db("db2","test1_b").objects.create(
+                coord=Point(-135.79, 31.97))
         
         # Test the arbitrary method transferal
         user1a.arbitrary_method()
