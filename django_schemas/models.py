@@ -13,7 +13,7 @@ django_models.options.DEFAULT_NAMES = (
         django_models.options.DEFAULT_NAMES + CUSTOM_META_VARS)
 
 
-class BaseModel:
+class BaseModel(object):
     """
     Plain non-model class with attributes to merge into the django
     model.
