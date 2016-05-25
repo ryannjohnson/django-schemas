@@ -53,6 +53,52 @@ def migrate(db, schema=None, environment=None, big_ints=False):
         routers.set_db()
 
 
+def sqlmigrate(
+        app_label, migration_name, db=None,
+        schema=None, environment=None, backwards=False, **kwargs):
+    """
+    Generate SQL for a database. If a schema is provided, it will become
+    the default schema for the models.
+    
+    Args:
+        app_label (str): Django app to source from.
+        migration_name (str): Django migratino to source from. 
+        db (Optional[str]): Alias for the database to migrate.
+        schema (Optional[str]): Name of the schema to use for
+            environments that don't explicitly specify one.
+        environment (Optional[str]): Name of environment, if only one
+            should be migrated this round.
+        backwards (Optional[bool]): Whether to return SQL to unapply a
+            migration.
+    
+    """
+    # Do this for every environment available on this db
+    environments = []
+    if environment:
+        environments.append(environment)
+    else:
+        environments = settings.DATABASES[db].get('ENVIRONMENTS',[])
+    for env in environments:
+        
+        # Figure out the schema name
+        current_schema = settings.DATABASE_ENVIRONMENTS[env].get('SCHEMA_NAME')
+        if not current_schema:
+            current_schema = schema
+        if not current_schema:
+            raise ConfigError("schema required and not present")
+        
+        # Prep the database wrapper with the school we want
+        routers.set_db(schema=current_schema, environment=env)
+        
+        # Run the migration script for this school specifically
+        call_command(
+                'sqlmigrate', app_label, migration_name,
+                database=db, backwards=backwards, **kwargs)
+        
+        # Reset the router db and schema
+        routers.set_db()
+
+
 def flush(db, schema):
     """Drop the schema from the database.
     

@@ -4,9 +4,9 @@ from ...migrations import migrate
 
 
 class Command(BaseCommand):
-    """Migrate a school on a secondary database and schema."""
+    """Generate sql for a schema migration."""
     
-    help = 'Migrates a database and schema'
+    help = 'Generate sql for a schema migration.'
     
     def add_arguments(self, parser):
         parser.add_argument('database',

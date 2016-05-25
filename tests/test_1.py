@@ -3,7 +3,7 @@ from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.db import connections
 from django.test import TestCase
-from django_schemas.migrations import flush, migrate
+from django_schemas.migrations import flush, migrate, sqlmigrate
 from django_schemas.utils import dict_fetchall
 import json
 from tests.models import Test1AUser, Test1BCar, Test1BUser, Test1BLocation
@@ -21,6 +21,17 @@ class Test1(TestCase):
         flush(db='db1', schema='test1_a')
         flush(db='db1', schema='test1_b')
         flush(db='db2', schema='test1_b')
+        
+        # Show the migrations for each environment
+        sqlmigrate(
+                app_label='tests', migration_name='0001_initial',
+                db='db1', environment='test1-a')
+        sqlmigrate(
+                app_label='tests', migration_name='0001_initial',
+                db='db1', schema='test1_b', environment='test1-b')
+        sqlmigrate(
+                app_label='tests', migration_name='0001_initial',
+                db='db2', schema='test1_b', environment='test1-b')
         
         # Do the migrations for each environment
         migrate(db='db1', environment='test1-a', big_ints=True)
